@@ -3,13 +3,7 @@ const cors = require("cors");
 const app = express();
 const PORT = 3008;
 
-app.use(
-	cors({
-		origin: "http://localhost:3000",
-		methods: ["GET", "POST"],
-		allowedHeaders: ["Content-Type"],
-	}),
-);
+app.use(cors({ origin: "http://localhost:3000" }));
 
 app.get("/deezer-playlists", async (req, res) => {
 	try {
