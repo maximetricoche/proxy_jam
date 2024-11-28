@@ -1,55 +1,313 @@
 const express = require("express");
+
 const cors = require("cors");
+
 const app = express();
+
 const PORT = 3008;
 
-app.use(cors({ origin: "http://localhost:3000" }));
+const DEEZER_API_URL = "https://api.deezer.com";
 
-const playlistIds = [
-	652109905, 751764391, 6156189524, 2474689942, 9559882142, 7532900862,
-	11370702624, 11237471584, 6528108984, 9911094822, 7182512544, 6791265584,
-	7182460504, 9959210002, 10820158102,
+const allowlist = [
+	"http://localhost:3000",
+	"https://proxyapideezer.vercel.app/api",
 ];
 
-app.get("/deezer-playlists", async (req, res) => {
-	try {
-		const playlists = await Promise.all(
-			playlistIds.map(async (id) => {
-				const response = await fetch(`https://api.deezer.com/playlist/${id}`);
-				const data = await response.json();
-				return data;
-			}),
-		);
+app.use(cors({ origin: allowlist }));
 
-		res.json(playlists);
+// ********************** Fetch HomePage ***************************
+
+// Playlist Top Banner
+app.get("/api/chart/0/playlists", async (req, res) => {
+	try {
+		const response = await fetch(`${DEEZER_API_URL}/chart/0/playlists`);
+		if (!response.ok) {
+			throw new Error("Erreur lors de la recherches de playlist");
+		}
+		const data = await response.json();
+
+		res.json(data);
 	} catch (error) {
-		console.log("Erreur lors de la récupération des playlists :", error);
-		res.status(500).send("Erreur serveur");
+		if (error instanceof Error) {
+			console.error("Erreur dans searchBannerPlaylist:", error.message);
+		} else {
+			console.error("Erreur inconnue dans searchBannerPlaylist");
+		}
 	}
 });
 
-const artistIds = [
-	13923487, 7010729, 7829130, 4331, 4872268, 10246324, 12526056, 4512147,
-	308253, 58707, 168047437, 102, 27, 482, 554792, 58801, 314777, 457, 259, 493,
-];
+// ********************** Fetch Playlists ******************************
 
-app.get("/deezer-artists", async (req, res) => {
+// Playlist
+app.get("/api/playlist/:id", async (req, res) => {
+	const { id } = req.params;
+
 	try {
-		const artists = await Promise.all(
-			artistIds.map(async (id) => {
-				const response = await fetch(`https://api.deezer.com/artist/${id}`);
-				const data = await response.json();
-				return data;
-			}),
-		);
-
-		res.json(artists);
+		const response = await fetch(`${DEEZER_API_URL}/playlist/${id}`);
+		if (!response.ok) {
+			throw new Error("Erreur lors de la recherche des pistes d'une playlist");
+		}
+		const data = await response.json();
+		res.json(data);
 	} catch (error) {
-		console.log("Erreur lors de la récupération des playlists :", error);
-		res.status(500).send("Erreur serveur");
+		if (error) {
+			console.error("Erreur dans searchPlaylist:", error.message);
+		} else {
+			console.error("Erreur inconnue dans searchPlaylist");
+		}
+	}
+});
+
+// Playlists Tracks
+app.get("/api/playlist/:id/tracks", async (req, res) => {
+	const { id } = req.params;
+
+	try {
+		const response = await fetch(`${DEEZER_API_URL}/playlist/${id}/tracks`);
+		if (!response.ok) {
+			throw new Error("Erreur lors de la recherche des pistes d'une playlist");
+		}
+		const data = await response.json();
+		res.json(data);
+	} catch (error) {
+		if (error) {
+			console.error("Erreur dans searchPlaylistTracks:", error.message);
+		} else {
+			console.error("Erreur inconnue dans searchPlaylistTracks");
+		}
+	}
+});
+
+// ********************** Fetch Artists ******************************
+
+// Artists
+app.get("/api/artist/:id", async (req, res) => {
+	const { id } = req.params;
+
+	try {
+		const response = await fetch(`${DEEZER_API_URL}/artist/${id}`);
+		if (!response.ok) {
+			throw new Error("Erreur lors de la recherche des pistes d'une playlist");
+		}
+		const data = await response.json();
+		res.json(data);
+	} catch (error) {
+		if (error) {
+			console.error("Erreur dans searchArtist:", error.message);
+		} else {
+			console.error("Erreur inconnue dans searchArtist");
+		}
+	}
+});
+
+// Artist Albums
+app.get("/api/artist/:id/albums", async (req, res) => {
+	const { id } = req.params;
+
+	try {
+		const response = await fetch(`${DEEZER_API_URL}/artist/${id}/albums`);
+		if (!response.ok) {
+			throw new Error("Erreur lors de la recherche des pistes d'une playlist");
+		}
+		const data = await response.json();
+		res.json(data);
+	} catch (error) {
+		if (error) {
+			console.error("Erreur dans searchArtistAlbums:", error.message);
+		} else {
+			console.error("Erreur inconnue dans searchArtistAlbums");
+		}
+	}
+});
+
+// Related Artists
+app.get("/api/artist/:id/related", async (req, res) => {
+	const { id } = req.params;
+
+	try {
+		const response = await fetch(
+			`${DEEZER_API_URL}/artist/${id}/related&limit=5`,
+		);
+		if (!response.ok) {
+			throw new Error("Erreur lors de la recherche des pistes d'une playlist");
+		}
+		const data = await response.json();
+		res.json(data);
+	} catch (error) {
+		if (error) {
+			console.error("Erreur dans searchRelatedArtsits:", error.message);
+		} else {
+			console.error("Erreur inconnue dans searchRelatedArtsits");
+		}
+	}
+});
+
+// Album With Most Fans
+app.get("/api/album/:id/tracks", async (req, res) => {
+	const { id } = req.params;
+
+	try {
+		const response = await fetch(`${DEEZER_API_URL}/album/${id}/tracks`);
+		if (!response.ok) {
+			throw new Error("Erreur lors de la recherche des pistes d'une playlist");
+		}
+		const data = await response.json();
+		res.json(data);
+	} catch (error) {
+		if (error) {
+			console.error("Erreur dans searchAlbumWithMostFans:", error.message);
+		} else {
+			console.error("Erreur inconnue dans searchAlbumWithMostFans");
+		}
+	}
+});
+
+// ********************** Fetch Albums ******************************
+
+// Album
+app.get("/api/album/:id", async (req, res) => {
+	const { id } = req.params;
+
+	try {
+		const response = await fetch(`${DEEZER_API_URL}/album/${id}/`);
+		if (!response.ok) {
+			throw new Error("Erreur lors de la recherche des pistes d'une playlist");
+		}
+		const data = await response.json();
+		res.json(data);
+	} catch (error) {
+		if (error) {
+			console.error("Erreur dans searchAlbum:", error.message);
+		} else {
+			console.error("Erreur inconnue dans searchAlbum");
+		}
+	}
+});
+
+// Albums Tracks
+app.get("/api/album/:id/tracks", async (req, res) => {
+	const { id } = req.params;
+
+	try {
+		const response = await fetch(`${DEEZER_API_URL}/album/${id}/tracks`);
+		if (!response.ok) {
+			throw new Error("Erreur lors de la recherche des pistes d'une playlist");
+		}
+		const data = await response.json();
+		res.json(data);
+	} catch (error) {
+		if (error) {
+			console.error("Erreur dans searchAlbumsTracks:", error.message);
+		} else {
+			console.error("Erreur inconnue dans searchAlbumsTracks");
+		}
+	}
+});
+
+// ********************** Fetch Search ******************************
+
+// Search Query Artist
+app.get("/api/search/artist", async (req, res) => {
+	const { q } = req.query || "";
+
+	try {
+		const response = await fetch(`${DEEZER_API_URL}/search/artist?q=${q}`);
+		if (!response.ok) {
+			throw new Error("Erreur lors de la recherche des pistes d'une playlist");
+		}
+		const data = await response.json();
+		res.json(data);
+	} catch (error) {
+		if (error) {
+			console.error("Erreur dans searchQueryArtist:", error.message);
+		} else {
+			console.error("Erreur inconnue dans searchQueryArtist");
+		}
+	}
+});
+
+// Search Query Album
+app.get("/api/search/album", async (req, res) => {
+	const { q } = req.query || "";
+
+	try {
+		const response = await fetch(`${DEEZER_API_URL}/search/album?q=${q}`);
+		if (!response.ok) {
+			throw new Error("Erreur lors de la recherche des pistes d'une playlist");
+		}
+		const data = await response.json();
+		res.json(data);
+	} catch (error) {
+		if (error) {
+			console.error("Erreur dans searchQueryAlbum:", error.message);
+		} else {
+			console.error("Erreur inconnue dans searchQueryAlbum");
+		}
+	}
+});
+
+// Search Query Playlist
+app.get("/api/search/playlist", async (req, res) => {
+	const { q } = req.query || "";
+
+	try {
+		const response = await fetch(`${DEEZER_API_URL}/search/playlist?q=${q}`);
+		if (!response.ok) {
+			throw new Error("Erreur lors de la recherche des pistes d'une playlist");
+		}
+		const data = await response.json();
+		res.json(data);
+	} catch (error) {
+		if (error) {
+			console.error("Erreur dans searchQueryPlaylist:", error.message);
+		} else {
+			console.error("Erreur inconnue dans searchQueryPlaylist");
+		}
+	}
+});
+
+// Search Query Track
+app.get("/api/search/track", async (req, res) => {
+	const { q } = req.query || "";
+
+	try {
+		const response = await fetch(`${DEEZER_API_URL}/search/track?q=${q}`);
+		if (!response.ok) {
+			throw new Error("Erreur lors de la recherche des pistes d'une playlist");
+		}
+		const data = await response.json();
+		res.json(data);
+	} catch (error) {
+		if (error) {
+			console.error("Erreur dans searchQueryTrack:", error.message);
+		} else {
+			console.error("Erreur inconnue dans searchQueryTrack");
+		}
+	}
+});
+
+// ********************** Fetch Track ******************************
+
+// Track
+app.get("/api/track/:id", async (req, res) => {
+	const { id } = req.params;
+
+	try {
+		const response = await fetch(`${DEEZER_API_URL}/track/${id}`);
+		if (!response.ok) {
+			throw new Error("Erreur lors de la recherche des pistes d'une playlist");
+		}
+		const data = await response.json();
+		res.json(data);
+	} catch (error) {
+		if (error) {
+			console.error("Erreur dans searchTrack:", error.message);
+		} else {
+			console.error("Erreur inconnue dans searchTrack");
+		}
 	}
 });
 
 app.listen(PORT, () => {
-	console.log(`Server is running on port ${PORT}`);
+	console.log(`Proxy server running on port : ${PORT}`);
 });
